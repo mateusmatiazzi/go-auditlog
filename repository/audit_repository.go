@@ -6,15 +6,33 @@ import (
 	"log"
 
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type AuditRepository struct {
 	client *mongo.Client
 }
 
-func NewAuditRepository(client *mongo.Client) *AuditRepository {
+func NewAuditRepository() *AuditRepository {
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb://localhost:27017"))
+
+	validateConnection(err, client)
+
+	fmt.Println("Connected to MongoDB!")
+
 	return &AuditRepository{
 		client: client,
+	}
+}
+
+func validateConnection(err error, client *mongo.Client) {
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = client.Ping(context.TODO(), nil)
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 
