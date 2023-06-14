@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	controller.CreateAuditLogController(&controller.AuditLogController{})
+	controller.CreateAuditLogController()
 }

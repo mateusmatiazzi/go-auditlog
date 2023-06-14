@@ -6,22 +6,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type AuditLogController struct {
-	gin *gin.Engine
-}
+func CreateAuditLogController() {
+	gin := gin.Default()
+	handler := handler.NewAuditLogHandler()
 
-type ControllerInterface interface {
-	CreateController()
-}
+	gin.POST("/newAudit", handler.CreateAuditLog)
+	gin.GET("/getAll", handler.GetAllAuditlogs)
 
-func (controller *AuditLogController) CreateController() {
-	controller.gin = gin.Default()
-
-	controller.gin.POST("/newAudit", handler.NewAuditLogHandler().CreateAuditLog)
-
-	controller.gin.Run(":8080")
-}
-
-func CreateAuditLogController(controller ControllerInterface) {
-	controller.CreateController()
+	gin.Run(":8080")
 }
