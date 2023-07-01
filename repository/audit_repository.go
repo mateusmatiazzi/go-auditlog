@@ -13,13 +13,14 @@ import (
 
 var COLLECTION_NAME = "audit-logs"
 var DATABASE_NAME = "Audit"
+var CONNECTION_URL = "mongodb://localhost:27017"
 
 type AuditRepository struct {
 	collection *mongo.Collection
 }
 
 func NewAuditRepository() *AuditRepository {
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb://localhost:27017"))
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(CONNECTION_URL))
 
 	validateConnection(err, client)
 
@@ -42,7 +43,7 @@ func validateConnection(err error, client *mongo.Client) {
 }
 
 func (repo *AuditRepository) SaveAuditLog(auditLog interface{}) {
-	fmt.Println("Salvando no banco")
+	fmt.Println("Saving in database")
 	_, err := repo.collection.InsertOne(context.TODO(), auditLog)
 
 	if err != nil {
