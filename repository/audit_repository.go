@@ -11,8 +11,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+var COLLECTION_NAME = "audit-logs"
+var DATABASE_NAME = "Audit"
+
 type AuditRepository struct {
-	client *mongo.Client
+	collection *mongo.Collection
 }
 
 func NewAuditRepository() *AuditRepository {
@@ -23,7 +26,7 @@ func NewAuditRepository() *AuditRepository {
 	fmt.Println("Connected to MongoDB!")
 
 	return &AuditRepository{
-		client: client,
+		collection: client.Database(DATABASE_NAME).Collection(COLLECTION_NAME),
 	}
 }
 
@@ -40,7 +43,7 @@ func validateConnection(err error, client *mongo.Client) {
 
 func (repo *AuditRepository) SaveAuditLog(auditLog interface{}) {
 	fmt.Println("Salvando no banco")
-	_, err := repo.client.Database("Audit").Collection("audit-logs").InsertOne(context.TODO(), auditLog)
+	_, err := repo.collection.InsertOne(context.TODO(), auditLog)
 
 	if err != nil {
 		log.Fatalln("Couldn't add log in database")
@@ -48,7 +51,7 @@ func (repo *AuditRepository) SaveAuditLog(auditLog interface{}) {
 }
 
 func (repo *AuditRepository) GetAllAuditlogs() []model.AuditLog {
-	cursor, err := repo.client.Database("Audit").Collection("audit-logs").Find(context.TODO(), bson.M{})
+	cursor, err := repo.collection.Find(context.TODO(), bson.M{})
 
 	if err != nil {
 		log.Fatalln("Couldn't retrieve logs from database")
