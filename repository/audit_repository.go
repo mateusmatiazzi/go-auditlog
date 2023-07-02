@@ -15,8 +15,13 @@ var COLLECTION_NAME = "audit-logs"
 var DATABASE_NAME = "Audit"
 var CONNECTION_URL = "mongodb://localhost:27017"
 
+type IAuditCollection interface {
+	InsertOne(ctx context.Context, document interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error)
+	Find(ctx context.Context, document interface{}, opts ...*options.FindOptions) (*mongo.Cursor, error)
+}
+
 type AuditRepository struct {
-	collection *mongo.Collection
+	Collection IAuditCollection
 }
 
 func NewAuditRepository() *AuditRepository {
@@ -27,7 +32,7 @@ func NewAuditRepository() *AuditRepository {
 	fmt.Println("Connected to MongoDB!")
 
 	return &AuditRepository{
-		collection: client.Database(DATABASE_NAME).Collection(COLLECTION_NAME),
+		Collection: client.Database(DATABASE_NAME).Collection(COLLECTION_NAME),
 	}
 }
 
@@ -42,17 +47,20 @@ func validateConnection(err error, client *mongo.Client) {
 	}
 }
 
-func (repo *AuditRepository) SaveAuditLog(auditLog interface{}) {
+func (repo *AuditRepository) SaveAuditLog(auditLog interface{}) error {
 	fmt.Println("Saving in database")
-	_, err := repo.collection.InsertOne(context.TODO(), auditLog)
+	_, err := repo.Collection.InsertOne(context.TODO(), auditLog)
 
 	if err != nil {
 		log.Fatalln("Couldn't add log in database")
+		return err
 	}
+
+	return nil
 }
 
 func (repo *AuditRepository) GetAllAuditlogs() []model.AuditLog {
-	cursor, err := repo.collection.Find(context.TODO(), bson.M{})
+	cursor, err := repo.Collection.Find(context.TODO(), bson.M{})
 
 	if err != nil {
 		log.Fatalln("Couldn't retrieve logs from database")
