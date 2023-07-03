@@ -52,33 +52,32 @@ func (repo *AuditRepository) SaveAuditLog(auditLog interface{}) error {
 	_, err := repo.Collection.InsertOne(context.TODO(), auditLog)
 
 	if err != nil {
-		log.Fatalln("Couldn't add log in database")
-		return err
+		return fmt.Errorf("Couldn't add log in database")
 	}
 
 	return nil
 }
 
-func (repo *AuditRepository) GetAllAuditlogs() []model.AuditLog {
+func (repo *AuditRepository) GetAllAuditlogs() ([]model.AuditLog, error) {
 	cursor, err := repo.Collection.Find(context.TODO(), bson.M{})
 
 	if err != nil {
-		log.Fatalln("Couldn't retrieve logs from database")
+		return nil, fmt.Errorf("Couldn't retrieve logs from database")
 	}
 
 	return buildArrayOfAuditLogs(cursor)
 }
 
-func buildArrayOfAuditLogs(cursor *mongo.Cursor) []model.AuditLog {
+func buildArrayOfAuditLogs(cursor *mongo.Cursor) ([]model.AuditLog, error) {
 	var auditLogs []model.AuditLog
 	for cursor.Next(context.TODO()) {
 		var auditLog model.AuditLog
 
 		if err := cursor.Decode(&auditLog); err != nil {
-			log.Fatalln("Couldn't retrieve logs from database")
+			return nil, err
 		}
 
 		auditLogs = append(auditLogs, auditLog)
 	}
-	return auditLogs
+	return auditLogs, nil
 }

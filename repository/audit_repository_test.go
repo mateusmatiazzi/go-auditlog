@@ -1,6 +1,8 @@
 package repository_test
 
 import (
+	"errors"
+	"fmt"
 	"testing"
 
 	"audit-service/model"
@@ -21,9 +23,18 @@ func TestGetAllAuditlogs(t *testing.T) {
 	repo, mockAuditCollection := mockAuditCollection(t)
 	mockAuditCollection.EXPECT().Find(gomock.Any(), gomock.Any(), gomock.Any()).Return(buildMockedAuditLogCursor(), nil).Times(1)
 
-	result := repo.GetAllAuditlogs()
+	result, _ := repo.GetAllAuditlogs()
 
 	assert.Equal(t, ENTITY, result[0].Entity)
+}
+
+func TestErrorInGetAllAuditlogs(t *testing.T) {
+	repo, mockAuditCollection := mockAuditCollection(t)
+	mockAuditCollection.EXPECT().Find(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.New("Cannot access the database")).Times(1)
+
+	_, err := repo.GetAllAuditlogs()
+
+	assert.Error(t, err, "Couldn't retrieve logs from database")
 }
 
 func TestSaveAuditLogAuditlogs(t *testing.T) {
@@ -33,6 +44,15 @@ func TestSaveAuditLogAuditlogs(t *testing.T) {
 	err := repo.SaveAuditLog(buildMockedAuditLog())
 
 	assert.NoError(t, err)
+}
+
+func TestErrorInSaveAuditLogAuditlogs(t *testing.T) {
+	repo, mockAuditCollection := mockAuditCollection(t)
+	mockAuditCollection.EXPECT().InsertOne(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("Couldn't add log in database")).Times(1)
+
+	err := repo.SaveAuditLog(buildMockedAuditLog())
+
+	assert.Error(t, err, "Couldn't add log in database")
 }
 
 func mockAuditCollection(t *testing.T) (*repository.AuditRepository, *mocks.MockIAuditCollection) {

@@ -38,8 +38,13 @@ func (handler *AuditLogHandler) CreateAuditLog(c *gin.Context) {
 
 func (handler *AuditLogHandler) GetAllAuditlogs(c *gin.Context) {
 	initializeRepository(handler)
+	response, err := handler.repository.GetAllAuditlogs()
 
-	c.JSON(http.StatusOK, handler.repository.GetAllAuditlogs())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, nil)
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 func initializeRepository(handler *AuditLogHandler) {
